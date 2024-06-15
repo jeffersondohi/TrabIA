@@ -4,17 +4,16 @@ import sys
 import tkinter as tk
 from tkinter import filedialog
 
-#teste
 def main(source=0):
     capture = cv2.VideoCapture(source) #inicia captura de video
     if not capture.isOpened():
         print(f"Erro ao abrir a fonte de vídeo: {source}")
         return
 
-    win_name = "Camera Preview"
-    cv2.namedWindow(win_name, cv2.WINDOW_NORMAL)
+    win_name = "Camera Preview" #Define o nome da janela onde o vídeo será exibido
+    cv2.namedWindow(win_name, cv2.WINDOW_NORMAL) #Cria uma janela com o nome especificado e permite redimensioná-la.
 
-    net = cv2.dnn.readNetFromCaffe("deploy.prototxt", "res10_300x300_ssd_iter_140000_fp16.caffemodel")
+    net = cv2.dnn.readNetFromCaffe("deploy.prototxt", "res10_300x300_ssd_iter_140000_fp16.caffemodel") #Carrega o modelo de rede neural treinado
 
     in_width = 300
     in_height = 300
@@ -22,20 +21,21 @@ def main(source=0):
     conf_threshold = 0.7
 
     while cv2.waitKey(1) != 27:
-        has_frame, frame = capture.read()
+        has_frame, frame = capture.read() #Captura um frame do vídeo
         if not has_frame:
             break
         frame = cv2.flip(frame, 1)
         frame_height = frame.shape[0]
         frame_width = frame.shape[1]
 
-        blob = cv2.dnn.blobFromImage(frame, 1.0, (in_width, in_height), mean, swapRB=False, crop=False)
+        blob = cv2.dnn.blobFromImage(frame, 1.0, (in_width, in_height), mean, swapRB=False, crop=False) #Converte o frame em um blob de 4 dimensões.
         net.setInput(blob)
         detections = net.forward()
 
-        for i in range(detections.shape[2]):
+        for i in range(detections.shape[2]): #Itera sobre as detecções
             confidence = detections[0, 0, i, 2]
-            if confidence > conf_threshold:
+            if confidence > conf_threshold: #Verifica se a confiança é maior que o limiar
+                #Calcula as coordenadas da caixa delimitadora
                 x_left_bottom = int(detections[0, 0, i, 3] * frame_width)
                 y_left_bottom = int(detections[0, 0, i, 4] * frame_height)
                 x_right_top = int(detections[0, 0, i, 5] * frame_width)
@@ -54,7 +54,7 @@ def main(source=0):
                 )
                 cv2.putText(frame, label, (x_left_bottom, y_left_bottom), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
-        t, _ = net.getPerfProfile()
+        t, _ = net.getPerfProfile() #Obtém o tempo de inferência
         label = "Inference time: %.2f ms" % (t * 1000.0 / cv2.getTickFrequency())
         cv2.putText(frame, label, (0, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
         cv2.imshow(win_name, frame)
@@ -64,7 +64,7 @@ def main(source=0):
     choose_source()
 
 
-def choose_source():
+def choose_source(): #criar a interface gráfica de escolha da fonte de vídeo
     def use_camera():
         root.destroy()
         main(0)
@@ -80,7 +80,7 @@ def choose_source():
         root.destroy()
         sys.exit()
 
-    root = tk.Tk()
+    root = tk.Tk() #janela principal
     root.title("Choose Source")
 
     tk.Label(root, text="Deseja fazer reconhecimento facial pela camera ou video?", pady=20).pack()
