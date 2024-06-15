@@ -4,7 +4,7 @@ import sys
 import tkinter as tk
 from tkinter import filedialog
 
-
+#teste
 def main(source=0):
     capture = cv2.VideoCapture(source) #inicia captura de video
     if not capture.isOpened():
